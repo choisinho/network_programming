@@ -1,0 +1,91 @@
+import tkinter
+import cv2
+import PIL.Image, PIL.ImageTk
+import time
+from tkinter import *
+
+
+class App:
+
+	def __init__(self, window, window_title, video_source=0):
+		self.window=window
+		self.window.title=(window_title)
+		self.video_source=video_source
+
+		self.vid= MyVideoCapture(self.video_source)
+		self.canvas=tkinter.Canvas(window, width=self.vid.width, height =  self.vid.height)
+		self.canvas.pack()
+
+
+		btn_frame=tkinter.Frame(window, background=self.from_rgb((117, 123, 129)))
+		btn_frame.place(x=0,y=0, anchor="nw", width=self.vid.width+4)
+
+		self.btn_input=tkinter.Entry(btn_frame, width=20,bg=self.from_rgb((52, 61, 70)), fg="white")
+		self.btn_input.pack(side="left", padx=10, pady=10)
+  
+		self.btn_input=tkinter.Button(btn_frame, text="ip입력",width=10, command=self.confirm, bg=self.from_rgb((52, 61, 70)), fg="white")
+		self.btn_input.pack(side="left", padx=10, pady=10)
+
+
+		self.btn_server=tkinter.Button(btn_frame, text="server연결", width=10, command=None, bg=self.from_rgb((52, 61, 70)), fg="white")
+		self.btn_server.pack(side="left", padx=10, pady=10)
+  
+		self.btn_client=tkinter.Button(btn_frame, text="client연결", width=10, command=None, bg=self.from_rgb((52, 61, 70)), fg="white")
+		self.btn_client.pack(side="left", padx=10, pady=10)
+  
+  
+  
+		self.btn_kill=tkinter.Button(btn_frame, text="연결 시도 중단", width=10, command=None, bg=self.from_rgb((52, 61, 70)), fg="white")
+		self.btn_kill.pack(side="left", padx=10, pady=10)
+  
+
+		self.btn_exit=tkinter.Button(btn_frame, text="통화 종료", width=10, command=None, bg=self.from_rgb((52, 61, 70)), fg="white")
+		self.btn_exit.pack(side="right", padx=10, pady=10)
+
+		self.delay=15
+		self.update()
+
+		self.window.mainloop()
+
+
+
+	def update(self):
+		ret, frame=self.vid.get_frame()
+
+		if ret:
+			self.photo = PIL.ImageTk.PhotoImage(image=PIL.Image.fromarray(frame))
+			self.canvas.create_image(0,0, image=self.photo, anchor=tkinter.NW)
+
+			self.window.after(self.delay,self.update)
+
+	def from_rgb(self,rgb):
+		return "#%02x%02x%02x" % rgb
+	def confirm():
+		in_text = "입력 내용 : " + input_text.get()
+		label.configure(text=in_text)
+
+
+class  MyVideoCapture:
+	"""docstring for  MyVideoCapture"""
+	def __init__(self, video_source=0):
+		self.vid = cv2.VideoCapture(video_source)
+		if not self.vid.isOpened():
+			raise ValueError("unable open video source", video_source)
+
+		self.width = self.vid.get(cv2.CAP_PROP_FRAME_WIDTH)
+		self.height = self.vid.get(cv2.CAP_PROP_FRAME_HEIGHT)
+
+	def get_frame(self):
+		if self.vid.isOpened():
+			ret, frame = self.vid.read()
+			if ret:
+				return (ret, cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
+			else:
+				return (ret, None)
+		else:
+			return (ret,None)		
+	def __del__(self):
+		if self.vid.isOpened():
+			self.vid.release()
+
+App(tkinter.Tk(),"tkinter ad OpenCV")
